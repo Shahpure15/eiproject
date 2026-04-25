@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+          <meta charset="UTF-8">
+          <meta name="viewport" content="width=device-width, initial-scale=1.0">
+          <title>SmartStreetLIGHT • IoT Dashboard</title>
+          <link rel="stylesheet" href="style.css">
+          <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+</head>
+
+<body>
+          <div class="app">
+                    <!-- HEADER -->
+                    <header>
+                              <div class="logo">
+                                        <i class="fa-solid fa-lightbulb"></i>
+                                        SmartStreetLIGHT
+                              </div>
+                              <div class="live-status">
+                                        <span class="live-dot"></span>
+                                        LIVE • ThingSpeak
+                                        <span id="last-updated" class="timestamp"></span>
+                              </div>
+                              <button onclick="refreshData()" class="refresh-btn">
+                                        <i class="fa-solid fa-rotate"></i> Refresh
+                              </button>
+                    </header>
+
+                    <!-- TOP NAV -->
+                    <div class="top-nav">
+                              <button onclick="navigateTo(0)" class="nav-btn active" id="nav-0">Dashboard</button>
+                              <button onclick="navigateTo(1)" class="nav-btn" id="nav-1">Real-time Trends</button>
+                              <button onclick="navigateTo(2)" class="nav-btn" id="nav-2">Advanced Visuals</button>
+                              <button onclick="navigateTo(3)" class="nav-btn" id="nav-3">Project Info</button>
+                    </div>
+
+                    <!-- DASHBOARD -->
+                    <div id="section-0" class="section active">
+                              <div class="sensors-grid">
+                                        <div class="sensor-card" onclick="showSensorModal(0)">
+                                                  <h3>LDR Sensor</h3>
+                                                  <div class="big-value" id="ldr-value">768</div>
+                                                  <div class="unit">/ 1023</div>
+                                                  <div class="badge yellow" id="ldr-badge">DAY</div>
+                                                  <p id="ldr-desc">Bright daylight</p>
+                                        </div>
+                                        <div class="sensor-card" onclick="showSensorModal(1)">
+                                                  <h3>PIR Motion</h3>
+                                                  <div class="big-value" id="pir-value">UNDETECTED</div>
+                                                  <div class="badge red" id="pir-badge">INACTIVE</div>
+                                                  <p id="pir-desc">No motion detected</p>
+                                        </div>
+                                        <div class="sensor-card" onclick="showSensorModal(2)">
+                                                  <h3>MQ-135 Gas</h3>
+                                                  <div class="big-value" id="gas-value">544</div>
+                                                  <div class="unit">PPM</div>
+                                                  <div class="badge red" id="gas-badge">DANGER</div>
+                                                  <p id="gas-desc">High pollution detected</p>
+                                        </div>
+                              </div>
+
+                              <!-- Averages -->
+                              <div class="averages">
+                                        <div class="avg-card">
+                                                  <div class="label">Avg LDR</div>
+                                                  <div class="value" id="avg-ldr">682</div>
+                                        </div>
+                                        <div class="avg-card">
+                                                  <div class="label">Avg Motion</div>
+                                                  <div class="value" id="avg-motion">31%</div>
+                                        </div>
+                                        <div class="avg-card">
+                                                  <div class="label">Avg Gas</div>
+                                                  <div class="value" id="avg-gas">466 PPM</div>
+                                        </div>
+                              </div>
+
+                              <!-- Street Light -->
+                              <div class="street-card">
+                                        <h2>Street Light Status</h2>
+                                        <div id="light-bulb" class="bulb">💡</div>
+                                        <div id="light-status" class="status-text off">OFF</div>
+                                        <p id="light-reason" class="reason">Daylight detected</p>
+                                        <div class="light-buttons">
+                                                  <button onclick="manualLight('ON')" class="btn green">Turn ON</button>
+                                                  <button onclick="manualLight('OFF')" class="btn red">Turn OFF</button>
+                                                  <button onclick="showAutoLogic()" class="btn blue">Auto Logic</button>
+                                        </div>
+                              </div>
+                    </div>
+
+                    <!-- REAL-TIME TRENDS -->
+                    <div id="section-1" class="section" style="display:none">
+                              <div class="chart-section">
+                                        <h2>Real-time Trends</h2>
+                                        <div class="trend-tabs">
+                                                  <button onclick="switchTrend(0)" class="tab active"
+                                                            id="tab-0">LDR</button>
+                                                  <button onclick="switchTrend(1)" class="tab"
+                                                            id="tab-1">Motion</button>
+                                                  <button onclick="switchTrend(2)" class="tab" id="tab-2">Gas</button>
+                                        </div>
+                                        <div class="chart-container">
+                                                  <canvas id="trendChart"></canvas>
+                                        </div>
+                              </div>
+                    </div>
+
+                    <!-- ADVANCED VISUALS -->
+                    <div id="section-2" class="section" style="display:none">
+                              <div class="visuals-grid">
+                                        <div class="viz-card">
+                                                  <h3>Street Light Distribution</h3>
+                                                  <canvas id="pieChart"></canvas>
+                                        </div>
+                                        <div class="viz-card">
+                                                  <h3>Hourly Averages</h3>
+                                                  <canvas id="barChart"></canvas>
+                                        </div>
+                                        <div class="viz-card full">
+                                                  <h3>Air Quality Intensity</h3>
+                                                  <canvas id="intensityChart"></canvas>
+                                        </div>
+                              </div>
+                    </div>
+
+                    <!-- PROJECT INFO -->
+                    <div id="section-3" class="section" style="display:none">
+                              <div class="project-info">
+                                        <h2>Project Overview</h2>
+                                        <p class="overview-text">
+                                                  The SmartStreet system integrates <strong>LDR</strong>,
+                                                  <strong>PIR</strong>, and <strong>MQ-135</strong> sensors with Arduino
+                                                  to create an intelligent street lighting solution with real-time air
+                                                  quality monitoring.
+                                                  Data is sent to ThingSpeak cloud for persistent storage and
+                                                  visualization.
+                                        </p>
+
+                                        <h3 class="key-features-title">Key Features</h3>
+                                        <div class="feature-grid">
+                                                  <div class="feature-card green">
+                                                            <strong>Smart Lighting</strong><br>
+                                                            Automatic control based on light + motion
+                                                  </div>
+                                                  <div class="feature-card yellow">
+                                                            <strong>Energy Efficient</strong><br>
+                                                            Saves up to 68% energy using motion detection
+                                                  </div>
+                                                  <div class="feature-card red">
+                                                            <strong>Pollution Monitoring</strong><br>
+                                                            Real-time harmful gas detection & alerts
+                                                  </div>
+                                                  <div class="feature-card blue">
+                                                            <strong>Cloud Connected</strong><br>
+                                                            Interactive dashboard with live & historical data
+                                                  </div>
+                                        </div>
+
+                                        <div class="institute-info">
+                                                  <strong>MIT Academy of Engineering, Pune</strong><br>
+                                                  IOT Project 2026<br>
+                                                  All rights preserved by Avinash singh
+                                        </div>
+                              </div>
+                    </div>
+          </div>
+
+          <!-- MODAL -->
+          <div id="modal" class="modal">
+                    <div class="modal-content">
+                              <span class="close" onclick="closeModal()">×</span>
+                              <h2 id="modal-title"></h2>
+                              <div id="modal-body"></div>
+                    </div>
+          </div>
+
+          <script src="script.js"></script>
+</body>
+
+</html>
